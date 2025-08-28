@@ -6,8 +6,10 @@ from ExperimentData import ExperimentData
 
 
 class ExperimentDataVEP(ExperimentData):
-    def __init__(self, xdf_path, min_frequency=0.5, max_frequency=30, bad_ch=None):
+    def __init__(self, xdf_path, min_frequency=0.5, max_frequency=30, tmin=-0.2, tmax=0.5, bad_ch=None):
         super().__init__(xdf_path)
+        self.tmin = tmin
+        self.tmax = tmax
         self._filter_data(min_frequency, max_frequency)
         self._create_montage()
         self._filter_markers()
@@ -27,10 +29,10 @@ class ExperimentDataVEP(ExperimentData):
         events = np.array(events)
         # TODO: Remove this
         # Shift all events by 300 ms to account for the delay
-        events[:, 0] += int(0.3 * self._raw.info['sfreq'])
+        # events[:, 0] += int(0.3 * self._raw.info['sfreq'])
         print(events.shape)
         event_dict = dict(standard=1, oddball=2)
-        self._epochs = mne.Epochs(self._raw, events, event_id=event_dict, tmin=-0.5, tmax=2, preload=True,
+        self._epochs = mne.Epochs(self._raw, events, event_id=event_dict, tmin=self.tmin, tmax=self.tmax, preload=True,
                                   baseline=(None, 0))
 
     def _create_montage(self):
@@ -109,7 +111,7 @@ class ExperimentDataVEP(ExperimentData):
         self._epochs.plot(scalings='auto', events=True, n_epochs=1)
 
     def plot_epoch(self, epoch_index):
-        # Plots a single epoch, starting from -0.2 sec before stimulus, and ending 0.2s before the next stimulus
+        # Plots a single epoch, starting from tmin before stimulus, and ending after tmax time
         self._epochs[epoch_index].plot(events=True, scalings='auto')
 
     def plot_compare_conditions(self, confidence_interval=0.95, picks=None):
