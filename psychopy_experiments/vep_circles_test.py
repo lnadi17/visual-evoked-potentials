@@ -2,7 +2,7 @@
 from psychopy import visual, core, event, logging
 from psychopy.visual import Window
 from psychopy.hardware import keyboard
-# from pylsl import StreamInfo, StreamOutlet
+from pylsl import StreamInfo, StreamOutlet
 import random
 import os
 
@@ -27,10 +27,10 @@ MARK_STANDARD = 1
 MARK_ODDBALL = 2
 
 # Create LSL Stream
-# info = StreamInfo(name='PsychopyMarkerStream', type='Markers',
-#                   channel_count=1, channel_format='int32',
-#                   source_id='uniqueid12345')
-# outlet = StreamOutlet(info)
+info = StreamInfo(name='PsychopyMarkerStream', type='Markers',
+                  channel_count=1, channel_format='int32',
+                  source_id='uniqueid12345')
+outlet = StreamOutlet(info)
 
 
 # Run
@@ -118,6 +118,9 @@ def get_numeric_response(win, prompt_text):
                 win.close()
                 core.quit()
 
+def send_marker(win, value):
+    """Send a marker value via LSL."""
+    win.callOnFlip(outlet.push_sample, [value])
 
 # Main flow
 def main():
@@ -126,7 +129,6 @@ def main():
 
     show_text_and_wait(win, 'Press space bar to begin task.', wait_keys=('space',), pos=(0, 0), height=0.04)
 
-    # send_marker('task-begin-vep')  # COMMENTED OUT
     cross = draw_crosshair(win, color='black')
 
     # Prepare trial list
@@ -146,44 +148,28 @@ def main():
     quit_keys = ['escape']
 
     for i, circle in enumerate(circles, start=1):
-        # send_marker('trial-begin')  # COMMENTED OUT
-
         stim = oddball_circle if circle == MARK_ODDBALL else standard_circle
 
         # Pre-trial fixation
-        t0 = core.Clock()
-        while t0.getTime() < PRETRIAL_TIME:
-            cross.draw()
-            win.flip()
-            if event.getKeys(quit_keys):
-                win.close()
-                core.quit()
+        cross.draw()
+        win.flip()
+        core.wait(PRETRIAL_TIME)
 
         # Stimulus
-        # send_marker(ODDBALL['marker'] if circle == ODDBALL['code'] else STANDARD['marker'])  # COMMENTED OUT
-        t1 = core.Clock()
-        while t1.getTime() < STIM_DISPLAY_TIME:
-            cross.draw()
-            stim.draw()
-            win.flip()
-            if event.getKeys(quit_keys):
-                win.close()
-                core.quit()
+        send_marker(win, MARK_ODDBALL if circle == MARK_ODDBALL else MARK_STANDARD)
+        cross.draw()
+        stim.draw()
+        win.flip()
+        core.wait(STIM_DISPLAY_TIME)
 
         # Randomize total trial length, keep ITI so total = chosen target
         total_trial_len = random.uniform(TRIAL_LEN_MIN, TRIAL_LEN_MAX)
         remaining_time = max(0.0, total_trial_len - PRETRIAL_TIME - STIM_DISPLAY_TIME)
-        if remaining_time > 0:
-            t2 = core.Clock()
-            while t2.getTime() < remaining_time:
-                cross.draw()
-                win.flip()
-                if event.getKeys(quit_keys):
-                    win.close()
-                    core.quit()
+        cross.draw()
+        win.flip()
+        core.wait(remaining_time)
 
         counter += 1
-        # send_marker('trial-end')  # COMMENTED OUT
 
         # Blocked numeric prompt
         if counter == LEN_BLOCK:
@@ -196,7 +182,6 @@ def main():
             _ = get_numeric_response(win, instructions2)
             counter = 0  # reset after prompt
 
-    # send_marker('task-end-vep')  # COMMENTED OUT
 
     # Cleanup
     end_text = write_text(win, 'Task complete!\n\nPress Enter to exit.', pos=(0, 0), height=0.06)
