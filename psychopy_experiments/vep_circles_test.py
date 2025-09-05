@@ -2,7 +2,7 @@
 from psychopy import visual, core, event, logging
 from psychopy.visual import Window
 from psychopy.hardware import keyboard
-# from pylsl import StreamInfo, StreamOutlet
+from pylsl import StreamInfo, StreamOutlet
 import random
 import os
 
@@ -27,25 +27,20 @@ MARK_STANDARD = 1
 MARK_ODDBALL = 2
 
 # Create LSL Stream
-# info = StreamInfo(name='PsychopyMarkerStream', type='Markers',
-#                   channel_count=1, channel_format='int32',
-#                   source_id='uniqueid12345')
-# outlet = StreamOutlet(info)
+info = StreamInfo(name='PsychopyMarkerStream', type='Markers',
+                  channel_count=1, channel_format='int32',
+                  source_id='uniqueid12345')
+outlet = StreamOutlet(info)
 
 
 # Run
 clock = core.Clock()
 logging.console.setLevel(logging.INFO)
 
-def draw_crosshair(win, size=0.05, width=0.005, color='black'):
-    # Simple '+' as crosshair
-    return visual.TextStim(win, text='+', height=size, color=color, bold=True)
-
-
 def write_text(win, text, pos=(0, 0), height=0.04, wrapWidth=1.5, bold=False):
     return visual.TextStim(
         win, text=text, pos=pos, height=height, wrapWidth=wrapWidth,
-        bold=bold, color='black', alignText='center', anchorVert='center'
+        bold=bold, color='black', alignText='center', anchorVert='center', units='height'
     )
 
 
@@ -68,9 +63,9 @@ def show_text_for_duration(win, text, seconds, pos=(0, 0), height=0.04):
     core.wait(seconds)
 
 
-def draw_crosshair(win, size=0.05, width=0.005, color='black'):
+def draw_crosshair(win, size=0.05, color='black'):
     # Simple '+' as crosshair
-    return visual.TextStim(win, text='+', height=size, color=color, bold=True)
+    return visual.TextStim(win, text='+', height=size, color=color, bold=True, units='height')
 
 
 def show_image_for_duration(win, img_path, seconds, size=0.3, pos=(0, 0)):
@@ -123,16 +118,18 @@ def get_numeric_response(win, prompt_text):
                 win.close()
                 core.quit()
 
+def send_marker(win, value):
+    """Send a marker value via LSL."""
+    win.callOnFlip(outlet.push_sample, [value])
 
 # Main flow
 def main():
     # Window in height units for easy scaling; grey background
-    win = visual.Window(size=[1280, 800], units='x', color=[0.5, 0.5, 0.5], fullscr=False)
+    win = visual.Window(size=[1280, 800], units='pix', color=[0.5, 0.5, 0.5], fullscr=False)
 
-    show_text_and_wait(win, 'Press space bar to begin task.', wait_keys=('space',), pos=(0, -0.8), height=0.04)
+    show_text_and_wait(win, 'Press space bar to begin task.', wait_keys=('space',), pos=(0, 0), height=0.04)
 
-    # send_marker('task-begin-vep')  # COMMENTED OUT
-    cross = draw_crosshair(win, size=50, color='black')
+    cross = draw_crosshair(win, color='black')
 
     # Prepare trial list
     standard_circle = visual.Circle(win, radius=circle_radius_px,
@@ -151,61 +148,40 @@ def main():
     quit_keys = ['escape']
 
     for i, circle in enumerate(circles, start=1):
-        # send_marker('trial-begin')  # COMMENTED OUT
-
         stim = oddball_circle if circle == MARK_ODDBALL else standard_circle
 
         # Pre-trial fixation
-        t0 = core.Clock()
-        while t0.getTime() < PRETRIAL_TIME:
-            cross.draw()
-            win.flip()
-            if event.getKeys(quit_keys):
-                win.close()
-                core.quit()
+        cross.draw()
+        win.flip()
+        core.wait(PRETRIAL_TIME)
 
         # Stimulus
-        # send_marker(ODDBALL['marker'] if circle == ODDBALL['code'] else STANDARD['marker'])  # COMMENTED OUT
-        t1 = core.Clock()
-        while t1.getTime() < STIM_DISPLAY_TIME:
-            cross.draw()
-            stim.draw()
-            win.flip()
-            if event.getKeys(quit_keys):
-                win.close()
-                core.quit()
+        send_marker(win, MARK_ODDBALL if circle == MARK_ODDBALL else MARK_STANDARD)
+        cross.draw()
+        stim.draw()
+        win.flip()
+        core.wait(STIM_DISPLAY_TIME)
 
         # Randomize total trial length, keep ITI so total = chosen target
         total_trial_len = random.uniform(TRIAL_LEN_MIN, TRIAL_LEN_MAX)
         remaining_time = max(0.0, total_trial_len - PRETRIAL_TIME - STIM_DISPLAY_TIME)
-        if remaining_time > 0:
-            t2 = core.Clock()
-            while t2.getTime() < remaining_time:
-                cross.draw()
-                win.flip()
-                if event.getKeys(quit_keys):
-                    win.close()
-                    core.quit()
+        cross.draw()
+        win.flip()
+        core.wait(remaining_time)
+
+        counter += 1
 
         # Blocked numeric prompt
         if counter == LEN_BLOCK:
             # Temporarily hide crosshair during prompt
-            instructions2 = """
-                Type the number of "high" (red) circles
-                you saw since the last time you were prompted,
-                and press the enter key.
-            """
+            instructions2 = 'Type the number of red circles\nyou saw since the last time you were prompted,\nand press the enter key.'
             # Draw static background
-            bg = visual.Rect(win, width=2.0, height=2.0, fillColor=[0.5, 0.5, 0.5], lineColor=None)
+            bg = visual.Rect(win, fillColor=[0.5, 0.5, 0.5], lineColor=None)
             bg.draw()
             win.flip()
             _ = get_numeric_response(win, instructions2)
             counter = 0  # reset after prompt
 
-        counter += 1
-        # send_marker('trial-end')  # COMMENTED OUT
-
-    # send_marker('task-end-vep')  # COMMENTED OUT
 
     # Cleanup
     end_text = write_text(win, 'Task complete!\n\nPress Enter to exit.', pos=(0, 0), height=0.06)
