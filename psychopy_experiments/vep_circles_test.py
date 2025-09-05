@@ -127,7 +127,7 @@ def get_numeric_response(win, prompt_text):
 # Main flow
 def main():
     # Window in height units for easy scaling; grey background
-    win = visual.Window(size=[1280, 800], units='px', color=[0.5, 0.5, 0.5], fullscr=False)
+    win = visual.Window(size=[1280, 800], units='x', color=[0.5, 0.5, 0.5], fullscr=False)
 
     show_text_and_wait(win, 'Press space bar to begin task.', wait_keys=('space',), pos=(0, -0.8), height=0.04)
 
