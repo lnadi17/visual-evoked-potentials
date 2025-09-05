@@ -37,15 +37,10 @@ MARK_ODDBALL = 2
 clock = core.Clock()
 logging.console.setLevel(logging.INFO)
 
-def draw_crosshair(win, size=0.05, width=0.005, color='black'):
-    # Simple '+' as crosshair
-    return visual.TextStim(win, text='+', height=size, color=color, bold=True)
-
-
 def write_text(win, text, pos=(0, 0), height=0.04, wrapWidth=1.5, bold=False):
     return visual.TextStim(
         win, text=text, pos=pos, height=height, wrapWidth=wrapWidth,
-        bold=bold, color='black', alignText='center', anchorVert='center'
+        bold=bold, color='black', alignText='center', anchorVert='center', units='height'
     )
 
 
@@ -68,7 +63,7 @@ def show_text_for_duration(win, text, seconds, pos=(0, 0), height=0.04):
     core.wait(seconds)
 
 
-def draw_crosshair(win, size=0.05, width=0.005, color='black'):
+def draw_crosshair(win, size=0.05, color='black'):
     # Simple '+' as crosshair
     return visual.TextStim(win, text='+', height=size, color=color, bold=True)
 
@@ -127,7 +122,7 @@ def get_numeric_response(win, prompt_text):
 # Main flow
 def main():
     # Window in height units for easy scaling; grey background
-    win = visual.Window(size=[1280, 800], units='px', color=[0.5, 0.5, 0.5], fullscr=False)
+    win = visual.Window(size=[1280, 800], units='pix', color=[0.5, 0.5, 0.5], fullscr=False)
 
     show_text_and_wait(win, 'Press space bar to begin task.', wait_keys=('space',), pos=(0, -0.8), height=0.04)
 
@@ -196,7 +191,7 @@ def main():
                 and press the enter key.
             """
             # Draw static background
-            bg = visual.Rect(win, width=2.0, height=2.0, fillColor=[0.5, 0.5, 0.5], lineColor=None)
+            bg = visual.Rect(win, fillColor=[0.5, 0.5, 0.5], lineColor=None)
             bg.draw()
             win.flip()
             _ = get_numeric_response(win, instructions2)
