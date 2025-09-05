@@ -65,7 +65,7 @@ def show_text_for_duration(win, text, seconds, pos=(0, 0), height=0.04):
 
 def draw_crosshair(win, size=0.05, color='black'):
     # Simple '+' as crosshair
-    return visual.TextStim(win, text='+', height=size, color=color, bold=True)
+    return visual.TextStim(win, text='+', height=size, color=color, bold=True, units='height')
 
 
 def show_image_for_duration(win, img_path, seconds, size=0.3, pos=(0, 0)):
@@ -124,10 +124,10 @@ def main():
     # Window in height units for easy scaling; grey background
     win = visual.Window(size=[1280, 800], units='pix', color=[0.5, 0.5, 0.5], fullscr=False)
 
-    show_text_and_wait(win, 'Press space bar to begin task.', wait_keys=('space',), pos=(0, -0.8), height=0.04)
+    show_text_and_wait(win, 'Press space bar to begin task.', wait_keys=('space',), pos=(0, 0), height=0.04)
 
     # send_marker('task-begin-vep')  # COMMENTED OUT
-    cross = draw_crosshair(win, size=50, color='black')
+    cross = draw_crosshair(win, color='black')
 
     # Prepare trial list
     standard_circle = visual.Circle(win, radius=circle_radius_px,
@@ -182,23 +182,19 @@ def main():
                     win.close()
                     core.quit()
 
+        counter += 1
+        # send_marker('trial-end')  # COMMENTED OUT
+
         # Blocked numeric prompt
         if counter == LEN_BLOCK:
             # Temporarily hide crosshair during prompt
-            instructions2 = """
-                Type the number of "high" (red) circles
-                you saw since the last time you were prompted,
-                and press the enter key.
-            """
+            instructions2 = 'Type the number of red circles\nyou saw since the last time you were prompted,\nand press the enter key.'
             # Draw static background
             bg = visual.Rect(win, fillColor=[0.5, 0.5, 0.5], lineColor=None)
             bg.draw()
             win.flip()
             _ = get_numeric_response(win, instructions2)
             counter = 0  # reset after prompt
-
-        counter += 1
-        # send_marker('trial-end')  # COMMENTED OUT
 
     # send_marker('task-end-vep')  # COMMENTED OUT
 
