@@ -95,12 +95,10 @@ class Main(LatentModule):
 
             if circle == self.oddball['code']:
                 self.marker(self.oddball['marker'])
-                self.picture(self.white['path'], scale=0.2, pos=(1.5, -0.8), duration=self.stim_display_time)
-             #   self.picture(self.oddball['path'], scale=0.3, duration=self.stim_display_time, pos=(0, 0))
+                self.picture(self.oddball['path'], scale=0.3, duration=self.stim_display_time, pos=(0, 0))
             else:
                 self.marker(self.standard['marker'])
-                self.picture(self.white['path'], scale=0.2, pos=(1.5, -0.8), duration=self.stim_display_time)
-              #  self.picture(self.standard['path'], scale=0.3, duration=self.stim_display_time, pos=(0, 0))
+                self.picture(self.standard['path'], scale=0.3, duration=self.stim_display_time, pos=(0, 0))
 
             # Randomize total trial length
             total_trial_len = random.uniform(self.trial_len_min, self.trial_len_max)
