@@ -14,7 +14,7 @@ Paradigm based on:
 - One random bundle selected for potential real shipping
 """
 
-USE_LSL = False  # Set to True to enable LSL markers for EEG
+USE_LSL = True  # Set to True to enable LSL markers for EEG
 
 if USE_LSL:
     from pylsl import StreamInfo, StreamOutlet
@@ -30,17 +30,17 @@ from datetime import datetime
 # =============================================================================
 # TIMING PARAMETERS (in seconds)
 # =============================================================================
-FIXATION_TIME = 0.000          # 1000 ms fixation cross
-BUNDLE_PREVIEW_TIME = 0.000    # 2000 ms bundle presentation (no price)
+FIXATION_TIME = 1.000          # 1000 ms fixation cross
+BUNDLE_PREVIEW_TIME = 2.000    # 2000 ms bundle presentation (no price)
 EMPTY_SCREEN_INTERVAL = (0.400, 0.600)  # 400–600 ms empty screen (randomized)
-PRICE_RESPONSE_TIME = 1.000    # 4000 ms bundle with price (response window)
+PRICE_RESPONSE_TIME = 4.000    # 4000 ms bundle with price (response window)
 # Note: Only responses within 4s are valid for behavioral analyses
 
 # =============================================================================
 # TRIAL & BLOCK STRUCTURE
 # =============================================================================
 N_BUNDLES = 40                 # 45 complementary bundles
-PRICE_CONDITIONS = ['NP']  # Normal, Low, Zero price conditions
+PRICE_CONDITIONS = ['NP', 'LP', 'ZP']  # Normal, Low, Zero price conditions
 N_TRIALS_TOTAL = N_BUNDLES * len(PRICE_CONDITIONS)  # 135 trials
 TRIALS_PER_BLOCK = 40          # 3 blocks of 45 trials each
 N_BLOCKS = 3
